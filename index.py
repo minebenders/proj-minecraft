@@ -1,18 +1,25 @@
-from indexer.info import Info
-from indexer.body import Body
-from pathlib import Path
-from bs4 import BeautifulSoup
-import json
 import getopt
-import sys
+import json
 import logging
+import sys
 
+from pathlib import Path
+from tqdm import tqdm
+from bs4 import BeautifulSoup
+from indexer.body import Body
+from indexer.info import Info
+from indexer.pbar import TqdmLoggingHandler
 
-logging.basicConfig(level=logging.INFO)
+log = logging.getLogger(__name__)
+log.setLevel(logging.INFO)
+log.addHandler(TqdmLoggingHandler())
+
 input_directory = output_file = None
+
 
 def usage():
     print(f"usage: {sys.argv[0]} -i case_directory -o output.json")
+
 
 try:
     opts, args = getopt.getopt(sys.argv[1:], 'i:o:')
@@ -34,15 +41,23 @@ if input_directory is None or output_file is None:
 
 path = Path(input_directory)
 data = []
+previous_case = {}
 
-for i, in_file in enumerate(sorted(path.glob('*.htm*'))):
-    with open(in_file, 'r') as read_file:
-        logging.info(f'Processing: "{in_file}"')
+for i, in_file in enumerate(tqdm(sorted(path.glob('*.htm*')))):
+    with open(in_file, 'r', encoding='utf-8', errors='ignore') as read_file:
+        log.debug(f'Processing: "{in_file}"')
         soup = BeautifulSoup(read_file, 'lxml')
-        case = Info.index(soup)
-        case['paragraphs'] = Body.index(soup)
-    data.append(case)
+        case = Info.index(soup, in_file)
+        if Body.index(soup):
+            case['paragraphs'] = Body.index(soup)
+    if case and case != previous_case:
+        data.append(case)
+        previous_case = case
 
-with open(output_file, 'w') as w:
-    logging.info(f'Writing JSON to {output_file}')
-    json.dump(data, w, indent=2)
+try:
+    with open(output_file, 'w') as w:
+        log.info(f'Writing JSON to {output_file}')
+        json.dump(data, w, indent=2)
+    log.info(f'JSON saved as {output_file}')
+except:
+    log.warning(f'Failed to save to {output_file}')

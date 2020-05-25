@@ -1,14 +1,17 @@
-from bs4 import BeautifulSoup
-import unicodedata
-import re
 import logging
+import re
+import unicodedata
+
+from bs4 import BeautifulSoup
 
 
 class Body:
+
+    @staticmethod
     def index(soup):
         paragraphs = []
         temp = ""
-        para_soup = soup("p", {"class": re.compile("Judg-\d+")})
+        para_soup = soup("p", {"class": re.compile(r"Judg-\d+")})
 
         for p in para_soup:
             if "Judg-1" not in p['class']:
@@ -25,7 +28,8 @@ class Body:
                   for i, para in enumerate(paragraphs, start=1)}
         return result
 
+    @staticmethod
     def merge(strings):
         para = unicodedata.normalize(
-                'NFKC', ''.join([string for string in strings]))
+            'NFKC', ''.join([string for string in strings]))
         return para
