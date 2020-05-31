@@ -64,9 +64,9 @@ class Info:
                 content_str = content.string
 
             if label == 'Decision Date':
-                case['date'] = content_str
+                case['Date'] = content_str
             elif label == 'Tribunal/Court':
-                case['court'] = content_str
+                case['Court'] = content_str
             elif label == 'Coram':
                 case['coram'] = [judge.string
                                  for judge in tag('a', class_='metadata-coram')]
