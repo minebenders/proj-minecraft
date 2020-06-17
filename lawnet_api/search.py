@@ -38,6 +38,9 @@ class Post:
             'apikey': self._search_api_key
         }
 
+    def __repr__(self):
+        return self._headers, self._data
+
     @staticmethod
     def search(searchTerm:str, cats:list=['r1'], l2cats:list=['r1c1'],
                l3cats:list=['#r1c1'], page:int=1, maxperpage:int=20, 
@@ -104,10 +107,10 @@ class XMLResult:
             logging.warning('Could not create XMLResult')
 
     def __repr__(self):
-        return self.data['citation']
+        return str(self.data['citation'] + ' ' + self.data['title'])[:80] + "..."
 
     def download(self, filetype='xml'):
-        return Post.download(self.doc['documentId'], filetype=filetype)
+        return Post.download(self.data['documentid'], filetype=filetype)
 
 class _Parse:
     @staticmethod
@@ -150,14 +153,13 @@ class _Parse:
             results.append(XMLResult(etree.tostring(result_node, encoding='UTF-8'),
                                      _Parse.clean_tags(result_d)))
 
-        return results, search_stats
+        return results, search_stats, xml_raw
     
     @staticmethod
     def download_xml(xml_raw):
         root = etree.XML(xml_raw.text)
-        case_report = root.find('CaseReport')
-        
-        return xml_raw
+        html = root.find('.//html')
+        return etree.tostring(html)
 
     @staticmethod
     def download_pdf(xml_raw):
