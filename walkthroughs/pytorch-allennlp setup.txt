@@ -12,3 +12,6 @@ Then, install AllenNLP:
 This will install a ton of libraries that AllenNLP uses. This will take a while...
 
 We could have pip installed using the complete 'requirements.txt' file but sometimes the libraries have to be installed in a particular order, so it might be better to install the dependencies step-by-step this way. In any case, the steps are already hugely condensed with `pip install allennlp`.
+
+when loading the allennlp model you may run into a spacy linking issue. follow these steps to solve it.
+https://stackoverflow.com/questions/53505068/couldn-t-link-model-to-en-core-web-md-on-a-windows-10
