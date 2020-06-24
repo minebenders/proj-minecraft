@@ -1,9 +1,13 @@
-from bs4 import BeautifulSoup
-import re
 import logging
+import re
 
+from bs4 import BeautifulSoup
+from indexer.pbar import TqdmLoggingHandler
 
-logging.basicConfig(level=logging.INFO)
+log = logging.getLogger(__name__)
+log.setLevel(logging.WARNING)
+log.addHandler(TqdmLoggingHandler())
+
 STOPWORDS = ['and', 'the', 'for']
 PROSEC_WHITELIST = ['rosecut', 'Attorney', 'AGC']
 BLACKLIST = ['first|1st', 'second|2nd', 'third|3rd', 'fourth|4th',
@@ -17,7 +21,9 @@ BLACKLIST_RE = re.compile(r'\b(?:%s)\b|\.|\,' % '|'.join(BLACKLIST),
 
 
 class Info:
-    def index(soup):
+
+    @staticmethod
+    def index(soup, in_file):
         case = {}
 
         def strip_inner_tag(children):
@@ -39,11 +45,12 @@ class Info:
         # Case Reference
         case_ref = soup.select('span[class*="offhyperlink"]')
         if not case_ref:
-            logging.warning('No Case Reference found.')
+            log.warning(f'No Case Reference found for {in_file}.')
         else:
             case['reference'] = [ref.text.strip() for ref in case_ref]
             if len(case_ref) > 2:
-                logging.warning(f'{len(case_ref)} Case Reference found: {case["reference"]}')
+                log.warning(
+                    f'{len(case_ref)} Case Reference found: {case["reference"]}')
 
         # Other Info
         info_rows = soup.select('tr[class*="info-row"]')
@@ -57,9 +64,9 @@ class Info:
                 content_str = content.string
 
             if label == 'Decision Date':
-                case['date'] = content_str
+                case['Date'] = content_str
             elif label == 'Tribunal/Court':
-                case['court'] = content_str
+                case['Court'] = content_str
             elif label == 'Coram':
                 case['coram'] = [judge.string
                                  for judge in tag('a', class_='metadata-coram')]
