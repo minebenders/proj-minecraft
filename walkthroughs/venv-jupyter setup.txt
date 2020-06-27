@@ -1,0 +1,28 @@
+These commands are applicable to Anaconda Prompt run on Windows.
+
+Open anaconda prompt/terminal/powershell (any shell-like CLI that points to the system's python exe
+
+Navigate to the proj repo folder
+`cd path/to/proj-repo`
+
+Create a folder named 'env' that stores ur project-specific software dependencies (i.e. external libraries); we are creating a virtualenv named 'env':
+`python3 -m venv env`
+
+Once the 'env' is created,
+`cd env/scripts`
+`activate`
+
+You should see a '(env)' at the start of the line in ur Prompt.
+
+Next, install ipykernel which provides the IPython kernel (think of this as a sort of vritual operating system which Jupyter requires in order to run python code):
+`pip install ipykernel`
+
+This step creates an ipython kernel that points to the 'env' source folder created earlier (because you have previously 'activated' the env), it names this kernel 'projmc'. This kernel is now available to any other jupyter notebook (you can see a kernel called 'projmc' in the Jupter Notebook interface):
+`python -m ipykernel install --name=projmc`
+
+Now, if you select the projmc kernel in the Jupyter Notebook interface, Jupyter Notebook will refer to the dependencies installed in 'env'. 
+You will not need to `activate` the 'env' venv when you turn Jupyter on. You just need to select the kernel.
+
+
+
+source: https://janakiev.com/blog/jupyter-virtual-envs/
