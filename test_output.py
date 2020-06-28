@@ -54,7 +54,7 @@ class TestOutput(unittest.TestCase):
 
         tsv_path = Path('MDA Spreadsheets')
         self.true_df = pd.read_csv(
-            tsv_path/'6.0 MDA Spreadsheet - Merged Trials & AAC.tsv', sep='\t', header=[1], index_col=0)
+            tsv_path/'6.0 MDA Spreadsheet - Merged Trials & AAC.tsv', sep='\t', header=[0], index_col=0, parse_dates=['Date'])
 
         # Construct unique reference, rename unnamed column, drop repeated columns, shift unique_ref to front
         self.true_df.reset_index(drop=True, inplace=True)
@@ -78,10 +78,10 @@ class TestOutput(unittest.TestCase):
             set(self.true_df.unique_ref)))
 
         self.output_df_aligned = self.output_df.loc[self.output_df.unique_ref.isin(
-            aligned)].sort_values('unique_ref').copy()
+            aligned)].sort_values('unique_ref').reset_index(drop=True).copy()
 
         self.true_df_aligned = self.true_df.loc[self.true_df.unique_ref.isin(
-            aligned)].sort_values('unique_ref').copy()
+            aligned)].sort_values('unique_ref').reset_index(drop=True).copy()
 
     def test_all_cases_have_pp(self):
         '''
@@ -114,28 +114,80 @@ class TestOutput(unittest.TestCase):
         self.assertTrue(len(set(self.true_df.unique_ref) -
                             set(self.output_df.unique_ref)) == 0)
 
-    def _test_aligned(self, output_df_field: str, input_df_field: str):
+    def _test_aligned(self, output_df_field: str, true_df_field: str, subset: pd.Series = None):
         '''
         Reusable wrapper for testing fields - not a test in and of itself.
         Verifies that the fields are the same across both dataframes.
         '''
-        assert_frame_equal(self.output_df_aligned[['unique_ref', output_df_field]],
-                           self.true_df_aligned[[
-                               'unique_ref', input_df_field]],
-                           check_index_type=False,
-                           check_names=False)
+        if subset is None:
+            output = self.output_df_aligned[['unique_ref', output_df_field]]
+            true = (self.true_df_aligned[['unique_ref', true_df_field]]
+                    .rename({true_df_field: output_df_field}, axis=1))
+        else:
+            output = self.output_df_aligned.loc[subset][[
+                'unique_ref', output_df_field]]
+            matched = self.true_df_aligned.unique_ref.isin(output.unique_ref)
+            true = (self.true_df_aligned.loc[matched][['unique_ref', true_df_field]]
+                    .rename({true_df_field: output_df_field}, axis=1))
+
+        output = (output.sort_values('unique_ref')
+                  .reset_index(drop=True)
+                  .copy())
+        true = (true.sort_values('unique_ref')
+                .reset_index(drop=True)
+                .copy())
+
+        assert_frame_equal(output, true)
 
     def test_aligned_date(self):
         '''
         Verifies that the date is the same across both dataframes.
         '''
-        self._test_aligned(output_df_field='Date', input_df_field='Date')
+        self._test_aligned(output_df_field='Date', true_df_field='Date')
 
     def test_aligned_court(self):
         '''
         Verifies that the court is the same across both dataframes.
         '''
-        self._test_aligned(output_df_field='Court', input_df_field='Court')
+        self._test_aligned(output_df_field='Court', true_df_field='Court')
+
+    def test_aligned_appeal_prediction(self):
+        '''
+        Verifies that the appeal prediction is the same across both dataframes,
+            for those that are present in both dataframes. The appeal prediction
+            is a smaller set (131 rows) of the aligned set (333 rows), and we
+            compare only on unique_ref.
+
+        Using the mapping:
+            1   true | appeal dismissed == appeal convicted
+            0   false | appeal not dismissed == appeal acquitted
+           -1   cannot be determined from answer (invalid answer to predicate)
+        '''
+
+        predictions = pd.read_csv(
+            'data/SGCA_predictions_and_evaluation.csv', index_col='Unnamed: 0')
+
+        conviction_map = {
+            'AC': 1,
+            'AA': 0,
+            'AP': -5,
+            'TC': -10,
+            'TA': -20,
+        }
+
+        self.true_df_aligned.Conviction = self.true_df_aligned.Conviction.str.strip().map(
+            conviction_map)
+
+        self.output_df_aligned = self.output_df_aligned.merge(
+            predictions, on='unique_ref')
+
+        self.output_df_aligned['appeal was dismissed'] = self.output_df_aligned['appeal was dismissed'].astype(
+            'float64')
+        subset = predictions.unique_ref.isin(self.true_df_aligned.unique_ref)
+
+        self._test_aligned(subset=subset,
+                           output_df_field='appeal was dismissed',
+                           true_df_field='Conviction')
 
 
 if __name__ == '__main__':
