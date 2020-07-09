@@ -1,0 +1,5 @@
+notes on appeals_02
+
+changes from appeals_01:
+1. we now identify appellant based on first listed party instead of the accused.
+2. question asked was "was {appellant}'s appeal allowed?" instead of "was {appellant}'s appeal dismissed?"
