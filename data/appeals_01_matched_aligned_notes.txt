@@ -1,0 +1,2 @@
+NOTES:
+This version, "appeals_01_matched_aligned.csv",  has the rows of the evaluated results of appeals_01 aligned with the rows of the results of appeals_00. This is to faciliate comparisons of results across versions.
