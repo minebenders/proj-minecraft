@@ -66,7 +66,7 @@ class Info:
             if label == 'Case Number':
                 case['case_id'] = content_str
             elif label == 'Decision Date':
-
+                case['date'] = content_str
             elif label == 'Tribunal/Court':
                 case['Court'] = content_str
             elif label == 'Coram':
