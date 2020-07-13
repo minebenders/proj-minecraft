@@ -63,8 +63,10 @@ class Info:
             else:
                 content_str = content.string
 
-            if label == 'Decision Date':
-                case['Date'] = content_str
+            if label == 'Case Number':
+                case['case_id'] = content_str
+            elif label == 'Decision Date':
+                case['date'] = content_str
             elif label == 'Tribunal/Court':
                 case['Court'] = content_str
             elif label == 'Coram':
