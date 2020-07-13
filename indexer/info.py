@@ -56,7 +56,9 @@ class Info:
             else:
                 content_str = content.string
 
-            if label == 'Decision Date':
+            if label == 'Case Number':
+                case['case_id'] = content_str
+            elif label == 'Decision Date':
                 case['date'] = content_str
             elif label == 'Tribunal/Court':
                 case['court'] = content_str
