@@ -1,48 +1,53 @@
-from indexer.info import Info
-from indexer.body import Body
-from pathlib import Path
-from bs4 import BeautifulSoup
-import json
 import getopt
-import sys
+import json
 import logging
+import argparse
 
+from pathlib import Path
+from tqdm import tqdm
+from bs4 import BeautifulSoup
+from indexer.body import Body
+from indexer.info import Info
+from indexer.pbar import TqdmLoggingHandler
 
-logging.basicConfig(level=logging.INFO)
+log = logging.getLogger(__name__)
+log.setLevel(logging.INFO)
+log.addHandler(TqdmLoggingHandler())
+
 input_directory = output_file = None
 
-def usage():
-    print(f"usage: {sys.argv[0]} -i case_directory -o output.json")
+parser = argparse.ArgumentParser(
+    description='''Extracts data from the .html files from a source directory.
+                   Argument defaults for the input directory and output file are ./cases/ and output.json.''')
+parser.add_argument('-i', help="location of the directory containing the cases (default: cases)",
+                    default="cases", dest="input_directory")
+parser.add_argument('-o', help="output filename (default: output.json)",
+                    default="output.json", dest="output_file")
 
-try:
-    opts, args = getopt.getopt(sys.argv[1:], 'i:o:')
-except getopt.GetoptError:
-    usage()
-    sys.exit(2)
+arguments = parser.parse_args()
+input_directory = Path(arguments.input_directory)
+output_file = arguments.output_file
 
-for opt, arg in opts:
-    if opt == '-i':
-        input_directory = arg
-    elif opt == '-o':
-        output_file = arg
-    else:
-        assert False, "unknown option"
+if input_directory.exists():
+    data = []
+    previous_case = {}
 
-if input_directory is None or output_file is None:
-    usage()
-    sys.exit(2)
+    for i, in_file in enumerate(tqdm(sorted(input_directory.glob('*.htm*')))):
+        with open(in_file, 'r', encoding='utf-8', errors='ignore') as read_file:
+            log.debug(f'Processing: "{in_file}"')
+            soup = BeautifulSoup(read_file, 'lxml')
+            case = Info.index(soup, in_file)
+            if Body.index(soup):
+                case['paragraphs'] = Body.index(soup)
+        if case and case != previous_case:
+            data.append(case)
+            previous_case = case
 
-path = Path(input_directory)
-data = []
+    with open(output_file, 'w') as w:
+        log.info(f'Writing JSON to {output_file}')
+        json.dump(data, w, indent=2)
+    log.info(f'JSON saved as {output_file}')
 
-for i, in_file in enumerate(sorted(path.glob('*.htm*'))):
-    with open(in_file, 'r') as read_file:
-        logging.info(f'Processing: "{in_file}"')
-        soup = BeautifulSoup(read_file, 'lxml')
-        case = Info.index(soup)
-        case['paragraphs'] = Body.index(soup)
-    data.append(case)
-
-with open(output_file, 'w') as w:
-    logging.info(f'Writing JSON to {output_file}')
-    json.dump(data, w, indent=2)
+else:
+    log.error(
+        f'Directory "{input_directory}" was not found. Run `python index.py -h` for help.')
