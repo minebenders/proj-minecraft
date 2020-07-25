@@ -19,3 +19,6 @@ venv.bak/
 # data 
 data/cases.json
 cases/
+mda cases/
+murder cases/
+random cases/
