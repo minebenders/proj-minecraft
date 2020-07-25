@@ -8,7 +8,8 @@ select the system and computer settings that best match your system and computer
 e.g. `pip install torch==1.5.0+cpu torchvision==0.6.0+cpu -f https://download.pytorch.org/whl/torch_stable.html`
 
 Then, install AllenNLP:
-`pip install allennlp`
+`pip install allennlp==0.9.0`
+v1.0.0 does not work for our elmo-bidaf model.
 This will install a ton of libraries that AllenNLP uses. This will take a while...
 
 We could have pip installed using the complete 'requirements.txt' file but sometimes the libraries have to be installed in a particular order, so it might be better to install the dependencies step-by-step this way. In any case, the steps are already hugely condensed with `pip install allennlp`.

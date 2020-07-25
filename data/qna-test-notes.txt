@@ -1,6 +1,0 @@
-Some notes on dataset and results of qna-test.json.
-
-System can only answer questions with the phrases/spans provided in the source/reference document.("boolean" questions that can be answered with y/n are not answered as y/n or t/f)
-
-Yet to test if system can rightly differentiate between two different presumptions and their outcomes. (Is the system only looking for the terms 'presumption' and 'rebut' without understanding which presumption to look for exactly?)
-

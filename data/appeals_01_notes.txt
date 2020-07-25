@@ -1,0 +1,8 @@
+notes on appeals_01 (algorithm reference no.)
+
+improvements/changes in appeals_01 compared to appeals_00:
+1. improved list of keywords (and changed to OR search)
+2. porter stemming used in search (to find more related paragraphs)
+3. custom question (personalized name of accused)
+4. concatenated paragraphs with higher paragraph number first into the qna model's passage input.
+5. full sentence is output instead of just a short sequence of words.

@@ -1,0 +1,4 @@
+notes on appeals_03
+
+changes from appeals_02:
+2. question asked was "was {appellant}'s appeal dismissed?"
