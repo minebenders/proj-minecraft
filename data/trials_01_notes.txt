@@ -1,0 +1,4 @@
+notes for trial_02
+
+changes from trials_01:
+question asked was "was {accused name} convicted?"
