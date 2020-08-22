@@ -6,14 +6,17 @@ from pathlib import Path
 from pandas.testing import assert_frame_equal
 
 
-class TestOutput(unittest.TestCase):
-
-    @classmethod
-    def setUp(self):
+class TestCaseExtractor(unittest.TestCase):
+    """
+    Tests the integrity of the case data extracted with case_extractor.py 
+    """
+    
+    def __init__(self, path):
         '''
         Set up the self.output_df dataframe from the .json output file.
+        :param path: String. path to json output of case_extractor.py.
         '''
-        self.output_df = pd.read_json('output.json')
+        self.output_df = pd.read_json(path)
 
         court_map = {
             'High Court': 'SGHC',
@@ -35,7 +38,10 @@ class TestOutput(unittest.TestCase):
         self.output_df.loc[ref_na, 'ref'], self.output_df.loc[ref_na,
                                                               'refSLR'] = self.output_df.refSLR[ref_na], np.nan
         self.output_df.drop('reference', axis=1, inplace=True)
-
+        
+        # retain the ordered list of parties in one column, before exploding output_df['parties'] next.
+        self.output_df = self.output_df.assign(listed_parties=self.output_df.parties)
+        
         # Construct the unique reference
         self.exploded_output = self.output_df.explode('parties')
         self.output_df = self.exploded_output.loc[self.exploded_output.parties.str.lower(
@@ -44,8 +50,8 @@ class TestOutput(unittest.TestCase):
             ' ' + self.output_df['parties']
         self.output_df.unique_ref = self.output_df.unique_ref.str.upper().str.replace(
             "AND ANOTHER", "").str.replace("AND OTHERS", "").str.replace(' +', ' ').str.strip()
-        self.output_df = self.output_df[['unique_ref', 'Date', 'Court',
-                                         'coram', 'counsel', 'parties', 'paragraphs']]
+        self.output_df = self.output_df[['unique_ref', 'case_id', 'date', 'Court',
+                                 'coram', 'counsel', 'listed_parties', 'parties', 'paragraphs']]
         self.output_df.rename(columns={'parties': 'accused'}, inplace=True)
 
         '''
